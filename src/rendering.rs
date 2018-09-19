@@ -12,6 +12,8 @@ pub const OPENGL: OpenGL = OpenGL::V3_2;
 pub const WINDOW_SIZE: [u32; 2] = [800, 800];
 
 pub type Color = [f32; 4];
+
+#[allow(dead_code)]
 pub mod colors {
     use super::Color;
 

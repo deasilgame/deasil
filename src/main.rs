@@ -4,7 +4,7 @@ extern crate piston;
 extern crate specs;
 
 mod components;
-mod systems;
+mod rendering;
 
 use glutin_window::GlutinWindow as Window;
 use graphics::Viewport;
@@ -13,7 +13,6 @@ use piston::input::*;
 use piston::window::WindowSettings;
 use specs::*;
 
-use systems::rendering;
 use components::*;
 
 
@@ -51,11 +50,11 @@ fn main() {
             }
         }
 
-        // pass DeltaTime for simulation update
-        (*world.write_resource::<Option<DeltaTime>>()) = match e.update_args() {
-            Some(u) => Some(u.dt.into()),
-            None => None
-        };
+        // advance the Clock
+        (*world.write_resource::<Clock>()).advance(match e.update_args() {
+            Some(u) => Some(u.dt),
+            None => None,
+        });
 
         // pass Viewport for rendering
         (*world.write_resource::<Option<Viewport>>()) = match e.render_args() {
