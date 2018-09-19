@@ -1,0 +1,10 @@
+[package]
+name = "deasil"
+version = "0.1.0"
+authors = [
+    "tatostao",
+    "teki",
+    "pierd",
+]
+
+[dependencies]
