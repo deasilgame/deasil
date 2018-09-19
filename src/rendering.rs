@@ -36,7 +36,7 @@ impl Default for RenderSys {
 
 impl<'a> System<'a> for RenderSys {
     type SystemData = (Read<'a, Option<Viewport>>,
-                       ReadStorage<'a, Pos>);
+                       ReadStorage<'a, Position>);
     
     fn run(&mut self, (viewport_storage, pos_storage): Self::SystemData) {
         use graphics::*;

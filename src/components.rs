@@ -5,7 +5,10 @@ use self::specs::*;
 pub fn create_world() -> World {
     let mut world = World::new();
     world.add_resource(Clock::default());
-    world.register::<Pos>();
+    world.register::<Position>();
+    world.register::<Rotation>();
+    world.register::<Velocity>();
+    world.register::<AngularVelocity>();
     world
 }
 
@@ -47,18 +50,32 @@ impl Clock {
     }
 }
 
-#[derive(Debug)]
-pub struct Pos {
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Position {
+    // coords in world system
     pub x: f64,
     pub y: f64,
 }
 
-impl Pos {
-    pub fn new(x: f64, y: f64) -> Self {
-        Pos { x, y }
-    }
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Rotation {
+    // rotation in radians
+    pub r: f64,
 }
 
-impl Component for Pos {
-    type Storage = VecStorage<Self>;
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Velocity {
+    // ∆ world system coords / s
+    pub x: f64,
+    pub y: f64,
+}
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct AngularVelocity {
+    // ∆ rotation in radians / s
+    pub r: f64,
 }
