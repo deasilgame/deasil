@@ -1,6 +1,4 @@
-extern crate specs;
-
-use self::specs::*;
+use specs::*;
 
 pub fn create_world() -> World {
     let mut world = World::new();
@@ -14,19 +12,19 @@ pub fn create_world() -> World {
 
 pub struct Clock {
     // last update delta
-    delta: Option<f64>,
+    pub delta: f64,
 
     // current world time
-    time: f64,
+    pub time: f64,
 
     // 0 = paused, 1 = real-time
-    simulation_speed: f64,
+    pub simulation_speed: f64,
 }
 
 impl Default for Clock {
     fn default() -> Self {
         Clock {
-            delta: None,
+            delta: 0.0,
             time: 0.0,
             simulation_speed: 1.0,
         }
@@ -34,19 +32,9 @@ impl Default for Clock {
 }
 
 impl Clock {
-    pub fn advance(&mut self, delta: Option<f64>) {
-        self.delta = match delta {
-            Some(dt) => {
-                let d = dt * self.simulation_speed;
-                self.time += d;
-                Some(d)
-            },
-            None => None
-        }
-    }
-
-    pub fn dt(&self) -> Option<f64> {
-        self.delta
+    pub fn advance(&mut self, delta: f64) {
+        self.delta = delta * self.simulation_speed;
+        self.time += self.delta;
     }
 }
 

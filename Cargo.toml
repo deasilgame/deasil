@@ -7,11 +7,17 @@ authors = [
     "pierd",
 ]
 
+# common dependencies
 [dependencies]
+kiss3d = "0.16.3"
+nalgebra = "0.16.2"
+rand = "0.5.5"
+specs = "0.12.2"
+specs-derive = "0.2.0"
+
+# Non WASM dependencies
+[target.'cfg(not(any(target_arch = "wasm32", target_arch = "asmjs", feature = "kiss3d")))'.dependencies]
 piston = "0.37.0"
 piston2d-graphics = "0.26.0"
 pistoncore-glutin_window = "0.47.0"
 piston2d-opengl_graphics = "0.53.0"
-rand = "0.5.5"
-specs = "0.12.2"
-specs-derive = "0.2.0"
