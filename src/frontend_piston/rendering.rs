@@ -48,7 +48,7 @@ impl<'a> System<'a> for RenderSys {
 
                 let transform = c.transform;
                 for pos in (&pos_storage).join() {
-                    ellipse(RED, rectangle::square(pos.x, pos.y, 3.0), transform, gl);
+                    ellipse(RED, rectangle::square(pos.x, pos.y, 4.0), transform, gl);
                 }
             });
         }

@@ -9,20 +9,20 @@ extern crate specs_derive;
 mod consts;
 mod game;
 
-// Kiss3D frontend
-#[cfg(any(target_arch = "wasm32", target_arch = "asmjs", feature = "kiss3d"))]
-mod frontend_kiss;
-
-#[cfg(any(target_arch = "wasm32", target_arch = "asmjs", feature = "kiss3d"))]
-fn main() {
-    frontend_kiss::main()
-}
-
 // Piston frontend
-#[cfg(not(any(target_arch = "wasm32", target_arch = "asmjs", feature = "kiss3d")))]
+#[cfg(feature = "piston")]
 mod frontend_piston;
 
-#[cfg(not(any(target_arch = "wasm32", target_arch = "asmjs", feature = "kiss3d")))]
+#[cfg(feature = "piston")]
 fn main() {
     frontend_piston::main()
+}
+
+// SDL2 frontend
+#[cfg(not(feature = "piston"))]
+mod frontend_sdl;
+
+#[cfg(not(feature = "piston"))]
+fn main() {
+    frontend_sdl::main()
 }
