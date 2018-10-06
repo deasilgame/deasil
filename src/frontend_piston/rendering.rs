@@ -2,7 +2,8 @@ extern crate graphics;
 extern crate opengl_graphics;
 extern crate specs;
 
-use self::graphics::Viewport;
+use self::graphics::{Graphics, Viewport};
+use self::graphics::math::Matrix2d;
 use self::opengl_graphics::{GlGraphics, OpenGL};
 use self::specs::*;
 
@@ -36,9 +37,11 @@ impl Default for RenderSys {
 
 impl<'a> System<'a> for RenderSys {
     type SystemData = (Read<'a, Option<Viewport>>,
-                       ReadStorage<'a, Position>);
+                       ReadStorage<'a, Position>,
+                       ReadStorage<'a, Rotation>,
+                       ReadStorage<'a, Shape>);
     
-    fn run(&mut self, (viewport_storage, pos_storage): Self::SystemData) {
+    fn run(&mut self, (viewport_storage, pos_storage, rot_storage, shape_storage): Self::SystemData) {
         use self::graphics::*;
         use self::colors::*;
 
@@ -46,11 +49,29 @@ impl<'a> System<'a> for RenderSys {
             self.gl.draw(viewport, |c, gl| {
                 clear(BLACK, gl);
 
-                let transform = c.transform;
-                for pos in (&pos_storage).join() {
-                    ellipse(RED, rectangle::square(pos.x, pos.y, 4.0), transform, gl);
+                for (pos, rot, shape) in (&pos_storage, &rot_storage, &shape_storage).join() {
+                    draw_shape(gl, &shape, c.transform.trans(pos.x, pos.y).rot_rad(rot.r))
                 }
             });
+        }
+    }
+}
+
+fn draw_shape<G: Graphics>(g: &mut G, shape: &Shape, transform: Matrix2d) {
+    use self::Shape::*;
+    use self::graphics::*;
+    use self::colors::*;
+
+    match shape {
+        Circle(radius) => ellipse(RED, rectangle::square(-radius, -radius, radius * 2.0), transform, g),
+        Rectangle(Vector { dx: width, dy: height }) => rectangle(BLUE, [width / -2.0, height / -2.0, *width, *height], transform, g),
+        Sprite(_name, Vector { dx: width, dy: height }) => {
+            let rect = [width / -2.0, height / -2.0, *width, *height];
+            rectangle(GREEN, rect, transform, g);
+            // TODO: render `name` inside the rectangle;
+        }
+        Compound(ref subshapes) => for SubShape { offset: Vector {dx, dy}, rotation, shape } in subshapes.iter() {
+            draw_shape(g, shape, transform.trans(*dx, *dy).rot_rad(*rotation))
         }
     }
 }

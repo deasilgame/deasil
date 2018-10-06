@@ -66,14 +66,48 @@ impl<'a, 'b> Game<'a, 'b> {
                 x: self.cursor_position[0],
                 y: self.cursor_position[1],
             })
+            .with(components::Rotation {
+                r: 0.0,
+            })
             .with(components::Velocity {
                 x: random_range(-MAX_V, MAX_V),
                 y: random_range(-MAX_V, MAX_V),
             })
+            .with(components::AngularVelocity {
+                r: random_range(-3.14, 3.14),
+            })
+            .with(random_shape())
             .build();
     }
 }
 
 fn random_range(from: f64, to: f64) -> f64 {
     from + (to - from) * random::<f64>()
+}
+
+const SHAPE_SIZE: f64 = 10.0;
+
+fn random_shape() -> components::Shape {
+    use self::components::{SubShape, Vector};
+    use self::components::Shape::*;
+
+    match (random::<bool>(), random::<bool>()) {
+        (true, true) => Circle(SHAPE_SIZE / 2.0),
+        (true, false) => Rectangle(Vector { dx: SHAPE_SIZE, dy: SHAPE_SIZE }),
+        (false, true) => Sprite("TODO".to_string(), Vector { dx: SHAPE_SIZE, dy: SHAPE_SIZE }),
+        (false, false) => {
+            let mut subshapes = Vec::new();
+            for _ in 0..3 {
+                subshapes.push(SubShape {
+                    offset: Vector {
+                        dx: random_range(-SHAPE_SIZE * 0.75, SHAPE_SIZE * 0.75),
+                        dy: random_range(-SHAPE_SIZE * 0.75, SHAPE_SIZE * 0.75),
+                    },
+                    rotation: random_range(0.0, 3.14),
+                    shape: random_shape(),
+                })
+            }
+            Compound(subshapes)
+        }
+    }
 }

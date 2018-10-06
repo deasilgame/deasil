@@ -7,6 +7,7 @@ pub fn create_world() -> World {
     world.register::<Rotation>();
     world.register::<Velocity>();
     world.register::<AngularVelocity>();
+    world.register::<Shape>();
     world
 }
 
@@ -38,6 +39,18 @@ impl Clock {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct Point {
+    pub x: f64,
+    pub y: f64,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Vector {
+    pub dx: f64,
+    pub dy: f64,
+}
+
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct Position {
@@ -66,4 +79,20 @@ pub struct Velocity {
 pub struct AngularVelocity {
     // ∆ rotation in radians / s
     pub r: f64,
+}
+
+#[derive(Clone, Component, Debug)]
+#[storage(VecStorage)]
+pub enum Shape {
+    Circle(f64),
+    Rectangle(Vector),
+    Sprite(String, Vector),
+    Compound(Vec<SubShape>),
+}
+
+#[derive(Clone, Debug)]
+pub struct SubShape {
+    pub offset: Vector,
+    pub rotation: f64,
+    pub shape: Shape,
 }
