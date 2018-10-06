@@ -50,7 +50,7 @@ impl<'a> System<'a> for RenderSys {
                 clear(BLACK, gl);
 
                 for (pos, rot, shape) in (&pos_storage, &rot_storage, &shape_storage).join() {
-                    draw_shape(gl, &shape, c.transform.trans(pos.x, pos.y).rot_rad(rot.r))
+                    draw_shape(gl, &shape, c.transform.trans(pos.0.x, pos.0.y).rot_rad(rot.0))
                 }
             });
         }

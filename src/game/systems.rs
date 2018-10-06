@@ -11,8 +11,8 @@ impl<'a> System<'a> for LinearMovementSys {
     fn run(&mut self, (clock_storage, vel_storage, mut pos_storage): Self::SystemData) {
         let dt = (*clock_storage).delta;
         for (v, p) in (&vel_storage, &mut pos_storage).join() {
-            p.x += v.x * dt;
-            p.y += v.y * dt;
+            p.0.x += v.0.dx * dt;
+            p.0.y += v.0.dy * dt;
         }
     }
 }
@@ -26,7 +26,7 @@ impl<'a> System<'a> for AngularMovementSys {
     fn run(&mut self, (clock_storage, vel_storage, mut rot_storage): Self::SystemData) {
         let dt = (*clock_storage).delta;
         for (v, r) in (&vel_storage, &mut rot_storage).join() {
-            r.r += v.r * dt;
+            r.0 += v.0 * dt;
         }
     }
 }

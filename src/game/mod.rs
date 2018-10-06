@@ -62,20 +62,10 @@ impl<'a, 'b> Game<'a, 'b> {
         // create a dummy "particle"
         const MAX_V: f64 = 20.0;
         self.world.create_entity()
-            .with(components::Position {
-                x: self.cursor_position[0],
-                y: self.cursor_position[1],
-            })
-            .with(components::Rotation {
-                r: 0.0,
-            })
-            .with(components::Velocity {
-                x: random_range(-MAX_V, MAX_V),
-                y: random_range(-MAX_V, MAX_V),
-            })
-            .with(components::AngularVelocity {
-                r: random_range(-3.14, 3.14),
-            })
+            .with(components::Position::new(self.cursor_position[0], self.cursor_position[1]))
+            .with(components::Rotation::default())
+            .with(components::Velocity::new(random_range(-MAX_V, MAX_V), random_range(-MAX_V, MAX_V)))
+            .with(components::AngularVelocity::new(random_range(-3.14, 3.14)))
             .with(random_shape())
             .build();
     }

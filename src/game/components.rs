@@ -11,6 +11,30 @@ pub fn create_world() -> World {
     world
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Point {
+    pub x: f64,
+    pub y: f64,
+}
+
+impl Point {
+    pub fn new(x: f64, y: f64) -> Self {
+        Point { x, y }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Vector {
+    pub dx: f64,
+    pub dy: f64,
+}
+
+impl Vector {
+    pub fn new(dx: f64, dy: f64) -> Self {
+        Vector { dx, dy }
+    }
+}
+
 pub struct Clock {
     // last update delta
     pub delta: f64,
@@ -39,46 +63,48 @@ impl Clock {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct Point {
-    pub x: f64,
-    pub y: f64,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Vector {
-    pub dx: f64,
-    pub dy: f64,
-}
-
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
-pub struct Position {
-    // coords in world system
-    pub x: f64,
-    pub y: f64,
+// coords in world system
+pub struct Position(pub Point);
+
+impl Position {
+    pub fn new(x: f64, y: f64) -> Self {
+        Position(Point::new(x, y))
+    }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
-pub struct Rotation {
-    // rotation in radians
-    pub r: f64,
+// rotation in radians
+pub struct Rotation(pub f64);
+
+impl Rotation {
+    pub fn new(r: f64) -> Self {
+        Rotation(r)
+    }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
-pub struct Velocity {
-    // ∆ world system coords / s
-    pub x: f64,
-    pub y: f64,
+// ∆ world system coords / s
+pub struct Velocity(pub Vector);
+
+impl Velocity {
+    pub fn new(dx: f64, dy: f64) -> Self {
+        Velocity(Vector::new(dx, dy))
+    }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
-pub struct AngularVelocity {
-    // ∆ rotation in radians / s
-    pub r: f64,
+// ∆ rotation in radians / s
+pub struct AngularVelocity(pub f64);
+
+impl AngularVelocity {
+    pub fn new(dr: f64) -> Self {
+        AngularVelocity(dr)
+    }
 }
 
 #[derive(Clone, Component, Debug)]
