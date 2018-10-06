@@ -3,6 +3,7 @@ use specs::*;
 pub fn create_world() -> World {
     let mut world = World::new();
     world.add_resource(Clock::default());
+    world.add_resource(Camera::default());
     world.register::<Position>();
     world.register::<Rotation>();
     world.register::<Velocity>();
@@ -60,6 +61,38 @@ impl Clock {
     pub fn advance(&mut self, delta: f64) {
         self.delta = delta * self.simulation_speed;
         self.time += self.delta;
+    }
+}
+
+pub struct Camera {
+    center: Point,
+    zoom: f64,
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Camera {
+            center: Point::default(),
+            zoom: 1.0,
+        }
+    }
+}
+
+impl Camera {
+    pub fn get_center_point(&self) -> Point {
+        self.center
+    }
+
+    pub fn get_zoom(&self) -> f64 {
+        self.zoom
+    }
+
+    pub fn center_at(&mut self, p: Point) {
+        self.center = p
+    }
+
+    pub fn adjust_zoom(&mut self, m: f64) {
+        self.zoom *= m
     }
 }
 

@@ -38,6 +38,9 @@ pub fn main() {
         if let Some(Button::Mouse(MouseButton::Left)) = e.release_args() {
             game.handle_mouse_left_click();
         }
+        if let Some(u) = e.mouse_scroll_args() {
+            game.handle_mouse_y_scroll(u[1]);
+        }
 
         // update
         if let Some (u) = e.update_args() {

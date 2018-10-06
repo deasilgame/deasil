@@ -37,20 +37,24 @@ impl Default for RenderSys {
 
 impl<'a> System<'a> for RenderSys {
     type SystemData = (Read<'a, Option<Viewport>>,
+                       Read<'a, Camera>,
                        ReadStorage<'a, Position>,
                        ReadStorage<'a, Rotation>,
                        ReadStorage<'a, Shape>);
     
-    fn run(&mut self, (viewport_storage, pos_storage, rot_storage, shape_storage): Self::SystemData) {
+    fn run(&mut self, (viewport_storage, camera, pos_storage, rot_storage, shape_storage): Self::SystemData) {
         use self::graphics::*;
         use self::colors::*;
 
         if let Some(viewport) = *viewport_storage {
+            let camera_center = camera.get_center_point();
+            let camera_zoom = camera.get_zoom();
+
             self.gl.draw(viewport, |c, gl| {
                 clear(BLACK, gl);
-
+                let transform = c.transform.trans(camera_center.x, camera_center.y).zoom(camera_zoom);
                 for (pos, rot, shape) in (&pos_storage, &rot_storage, &shape_storage).join() {
-                    draw_shape(gl, &shape, c.transform.trans(pos.0.x, pos.0.y).rot_rad(rot.0))
+                    draw_shape(gl, &shape, transform.trans(pos.0.x, pos.0.y).rot_rad(rot.0))
                 }
             });
         }

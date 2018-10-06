@@ -56,18 +56,23 @@ impl<'a, 'b> Game<'a, 'b> {
     pub fn handle_mouse_move(&mut self, position: [f64; 2]) {
         // just store last cursor position
         self.cursor_position = position;
+        (*self.world.write_resource::<components::Camera>()).center_at(components::Point::new(position[0], position[1]));
     }
 
     pub fn handle_mouse_left_click(&mut self) {
         // create a dummy "particle"
         const MAX_V: f64 = 20.0;
         self.world.create_entity()
-            .with(components::Position::new(self.cursor_position[0], self.cursor_position[1]))
+            .with(components::Position(components::Point::new(0.0, 0.0)))
             .with(components::Rotation::default())
             .with(components::Velocity::new(random_range(-MAX_V, MAX_V), random_range(-MAX_V, MAX_V)))
             .with(components::AngularVelocity::new(random_range(-3.14, 3.14)))
             .with(random_shape())
             .build();
+    }
+
+    pub fn handle_mouse_y_scroll(&mut self, dy: f64) {
+        (*self.world.write_resource::<components::Camera>()).adjust_zoom(super::consts::ZOOM_FACTOR.powf(dy));
     }
 }
 
