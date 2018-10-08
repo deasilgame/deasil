@@ -7,10 +7,10 @@ use self::graphics::math::Matrix2d;
 use self::opengl_graphics::{GlGraphics, OpenGL};
 use self::specs::*;
 
+use consts;
 use game::components::*;
 
 pub const OPENGL: OpenGL = OpenGL::V3_2;
-pub const WINDOW_SIZE: [u32; 2] = [800, 800];
 
 pub type Color = [f32; 4];
 
@@ -52,7 +52,10 @@ impl<'a> System<'a> for RenderSys {
 
             self.gl.draw(viewport, |c, gl| {
                 clear(BLACK, gl);
-                let transform = c.transform.trans((WINDOW_SIZE[0] as f64) - camera_center.x, (WINDOW_SIZE[1] as f64) - camera_center.y).zoom(camera_zoom);
+                let transform = c.transform
+                    .trans(consts::WINDOW_SIZE[0] as f64 / 2.0, consts::WINDOW_SIZE[1] as f64 / 2.0)
+                    .zoom(camera_zoom)
+                    .trans(-camera_center.x, -camera_center.y);
                 for (pos, rot, shape) in (&pos_storage, &rot_storage, &shape_storage).join() {
                     draw_shape(gl, &shape, transform.trans(pos.0.x, pos.0.y).rot_rad(rot.0))
                 }

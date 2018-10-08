@@ -46,7 +46,7 @@ fn handle_input_event(game: &mut game::Game, e: &Event) {
 pub fn main() {
     use specs::DispatcherBuilder;
 
-    let mut window: Window = WindowSettings::new(consts::TITLE, rendering::WINDOW_SIZE)
+    let mut window: Window = WindowSettings::new(consts::TITLE, consts::WINDOW_SIZE)
         .opengl(rendering::OPENGL)
         .exit_on_esc(true)
         .build()
