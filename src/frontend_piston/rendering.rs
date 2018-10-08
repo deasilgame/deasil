@@ -52,7 +52,7 @@ impl<'a> System<'a> for RenderSys {
 
             self.gl.draw(viewport, |c, gl| {
                 clear(BLACK, gl);
-                let transform = c.transform.trans(camera_center.x, camera_center.y).zoom(camera_zoom);
+                let transform = c.transform.trans((WINDOW_SIZE[0] as f64) - camera_center.x, (WINDOW_SIZE[1] as f64) - camera_center.y).zoom(camera_zoom);
                 for (pos, rot, shape) in (&pos_storage, &rot_storage, &shape_storage).join() {
                     draw_shape(gl, &shape, transform.trans(pos.0.x, pos.0.y).rot_rad(rot.0))
                 }

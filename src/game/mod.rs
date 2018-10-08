@@ -2,17 +2,12 @@ pub mod components;
 mod systems;
 
 use rand::random;
-
 use specs::*;
 use specs::shred::{Resource, FetchMut};
 
 pub struct Game<'a, 'b> {
-    // ECS
     pub world: World,
     dispatcher: Dispatcher<'a, 'b>,
-
-    // cursor position in window coords
-    cursor_position: [f64; 2],
 }
 
 impl<'a, 'b> Game<'a, 'b> {
@@ -20,10 +15,11 @@ impl<'a, 'b> Game<'a, 'b> {
         Game {
             world: components::create_world(),
             dispatcher: DispatcherBuilder::new()
+                .with(systems::InputSys, "Input", &[])
+                .with(systems::AccelerationSys, "Acceleration", &[])
                 .with(systems::LinearMovementSys, "Linear Movement", &[])
                 .with(systems::AngularMovementSys, "Angular Movement", &[])
                 .build(),
-            cursor_position: [0.0, 0.0],
         }
     }
 
@@ -53,34 +49,68 @@ impl<'a, 'b> Game<'a, 'b> {
         rendering_dispatcher.dispatch(&self.world.res);
     }
 
-    pub fn handle_mouse_move(&mut self, position: [f64; 2]) {
-        // just store last cursor position
-        self.cursor_position = position;
-        (*self.world.write_resource::<components::Camera>()).center_at(components::Point::new(position[0], position[1]));
-    }
-
-    pub fn handle_mouse_left_click(&mut self) {
-        // create a dummy "particle"
-        const MAX_V: f64 = 20.0;
-        self.world.create_entity()
+    pub fn create_player(&mut self) {
+        let player_entity = self.world.create_entity()
             .with(components::Position(components::Point::new(0.0, 0.0)))
             .with(components::Rotation::default())
-            .with(components::Velocity::new(random_range(-MAX_V, MAX_V), random_range(-MAX_V, MAX_V)))
-            .with(components::AngularVelocity::new(random_range(-3.14, 3.14)))
-            .with(random_shape())
+            .with(components::Velocity::default())
+            .with(components::Acceleration::default())
+            .with(components::AngularVelocity::default())
+            .with(player_shape())
             .build();
+        (*self.world.write_resource::<Option<components::Player>>()) = Some(components::Player(player_entity));
     }
 
-    pub fn handle_mouse_y_scroll(&mut self, dy: f64) {
-        (*self.world.write_resource::<components::Camera>()).adjust_zoom(super::consts::ZOOM_FACTOR.powf(dy));
+    pub fn input_mut(&mut self) -> FetchMut<components::Input> {
+        self.world.write_resource::<components::Input>()
     }
+}
+
+pub fn create_dummy_entity<B: Builder>(builder: B) -> B {
+    // create a dummy "particle"
+    const MAX_V: f64 = 20.0;
+    builder
+        .with(components::Position(components::Point::new(0.0, 0.0)))
+        .with(components::Rotation::default())
+        .with(components::Velocity::new(random_range(-MAX_V, MAX_V), random_range(-MAX_V, MAX_V)))
+        .with(components::AngularVelocity::new(random_range(-3.14, 3.14)))
+        .with(random_shape())
 }
 
 fn random_range(from: f64, to: f64) -> f64 {
     from + (to - from) * random::<f64>()
 }
 
-const SHAPE_SIZE: f64 = 10.0;
+const SHAPE_SIZE: f64 = 1.0;
+
+fn player_shape() -> components::Shape {
+    use self::components::{SubShape, Vector};
+    use self::components::Shape::*;
+
+    let mut subshapes = Vec::new();
+    subshapes.push(SubShape {
+        offset: Vector::new(0.0, 0.0),
+        rotation: 0.0,
+        shape: Circle(1.0),
+    });
+    subshapes.push(SubShape {
+        offset: Vector::new(0.75, 0.0),
+        rotation: 0.0,
+        shape: Rectangle(Vector::new(0.75, 0.5)),
+    });
+    subshapes.push(SubShape {
+        offset: Vector::new(-0.75, 0.75),
+        rotation: 3.14 / 4.0,
+        shape: Rectangle(Vector::new(0.5, 0.5)),
+    });
+    subshapes.push(SubShape {
+        offset: Vector::new(-0.75, -0.75),
+        rotation: 3.14 / 4.0,
+        shape: Rectangle(Vector::new(0.5, 0.5)),
+    });
+
+    Compound(subshapes)
+}
 
 fn random_shape() -> components::Shape {
     use self::components::{SubShape, Vector};

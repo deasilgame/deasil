@@ -1,12 +1,16 @@
+use consts;
 use specs::*;
 
 pub fn create_world() -> World {
     let mut world = World::new();
+    world.add_resource(Input::default());
     world.add_resource(Clock::default());
     world.add_resource(Camera::default());
+    world.add_resource(None as Option<Player>);
     world.register::<Position>();
     world.register::<Rotation>();
     world.register::<Velocity>();
+    world.register::<Acceleration>();
     world.register::<AngularVelocity>();
     world.register::<Shape>();
     world
@@ -33,6 +37,33 @@ pub struct Vector {
 impl Vector {
     pub fn new(dx: f64, dy: f64) -> Self {
         Vector { dx, dy }
+    }
+}
+
+#[derive(Default, Debug)]
+pub struct Input {
+    pub left: bool,
+    pub right: bool,
+    pub up: bool,
+    pub down: bool,
+
+    pub mouse_left: bool,
+    pub mouse_scroll: [f64; 2],
+    pub mouse_position: [f64; 2],
+}
+
+impl Input {
+    pub fn keyboard_direction(&self) -> Vector {
+        use std::f64::consts::SQRT_2;
+        if (self.left || self.right) && (self.up || self.down) {
+            Vector::new(if self.left { -SQRT_2 } else { SQRT_2 }, if self.up { -SQRT_2 } else { SQRT_2 })
+        } else if self.left || self.right {
+            Vector::new(if self.left { -1.0 } else { 1.0 }, 0.0)
+        } else if self.up || self.down {
+            Vector::new(0.0, if self.up { -1.0 } else { 1.0 })
+        } else {
+            Vector::new(0.0, 0.0)
+        }
     }
 }
 
@@ -73,7 +104,7 @@ impl Default for Camera {
     fn default() -> Self {
         Camera {
             center: Point::default(),
-            zoom: 1.0,
+            zoom: consts::DEFAULT_ZOOM,
         }
     }
 }
@@ -95,6 +126,8 @@ impl Camera {
         self.zoom *= m
     }
 }
+
+pub struct Player(pub Entity);
 
 #[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
@@ -126,6 +159,17 @@ pub struct Velocity(pub Vector);
 impl Velocity {
     pub fn new(dx: f64, dy: f64) -> Self {
         Velocity(Vector::new(dx, dy))
+    }
+}
+
+#[derive(Component, Debug, Default)]
+#[storage(VecStorage)]
+// ∆ world system coords / s / s
+pub struct Acceleration(pub Vector);
+
+impl Acceleration {
+    pub fn new(dx: f64, dy: f64) -> Self {
+        Acceleration(Vector::new(dx, dy))
     }
 }
 

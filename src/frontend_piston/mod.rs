@@ -13,6 +13,36 @@ use self::piston::event_loop::*;
 use self::piston::input::*;
 use self::piston::window::WindowSettings;
 
+fn handle_input_event(game: &mut game::Game, e: &Event) {
+    let mut input = game.input_mut();
+    if let Some(m) = e.mouse_cursor_args() {
+        input.mouse_position = m;
+    }
+    if let Some(u) = e.mouse_scroll_args() {
+        input.mouse_scroll = u;
+    }
+    if let Some(k) = e.press_args() {
+        match k {
+            Button::Mouse(MouseButton::Left) => input.mouse_left = true,
+            Button::Keyboard(Key::W) => input.up = true,
+            Button::Keyboard(Key::S) => input.down = true,
+            Button::Keyboard(Key::A) => input.left = true,
+            Button::Keyboard(Key::D) => input.right = true,
+            _ => {}
+        }
+    }
+    if let Some(k) = e.release_args() {
+        match k {
+            Button::Mouse(MouseButton::Left) => input.mouse_left = false,
+            Button::Keyboard(Key::W) => input.up = false,
+            Button::Keyboard(Key::S) => input.down = false,
+            Button::Keyboard(Key::A) => input.left = false,
+            Button::Keyboard(Key::D) => input.right = false,
+            _ => {}
+        }
+    }
+}
+
 pub fn main() {
     use specs::DispatcherBuilder;
 
@@ -30,17 +60,11 @@ pub fn main() {
         .with_thread_local(rendering::RenderSys::default())
         .build();
 
+    game.create_player();
+
     while let Some(e) = events.next(&mut window) {
         // pass events to game
-        if let Some(m) = e.mouse_cursor_args() {
-            game.handle_mouse_move(m);
-        }
-        if let Some(Button::Mouse(MouseButton::Left)) = e.release_args() {
-            game.handle_mouse_left_click();
-        }
-        if let Some(u) = e.mouse_scroll_args() {
-            game.handle_mouse_y_scroll(u[1]);
-        }
+        handle_input_event(&mut game, &e);
 
         // update
         if let Some (u) = e.update_args() {
