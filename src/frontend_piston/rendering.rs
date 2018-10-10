@@ -9,7 +9,6 @@ use self::specs::*;
 
 use consts;
 use game::components::*;
-use std::collections::HashMap;
 
 pub const OPENGL: OpenGL = OpenGL::V3_2;
 
@@ -94,9 +93,7 @@ fn draw_shape<G: Graphics>(g: &mut G, shape: &Shape, transform: Matrix2d) {
     }
 }
 
-struct Parallax {
-    seeds: HashMap<(usize, isize, isize), [u8; 16]>,
-}
+struct Parallax;
 
 impl Parallax {
     const PLANES: usize = 4;
@@ -106,7 +103,7 @@ impl Parallax {
     const STAR_RADIUS: f64 = 0.05;
 
     fn new() -> Self {
-        Parallax { seeds: HashMap::new() }
+        Parallax
     }
 
     fn draw<G: Graphics>(&mut self, g: &mut G, center: Point, zoom: f64, base_transform: Matrix2d) {
@@ -158,9 +155,24 @@ impl Parallax {
     }
 
     fn rng_seed(&mut self, p: usize, x: f64, y: f64) -> [u8; 16] {
-        use rand;
-        // get stored seed or generate a random one (using global RNG)
-        *self.seeds.entry((p, x.floor() as isize, y.floor() as isize)).or_insert_with(rand::random::<[u8; 16]>)
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::Hasher;
+
+        // hash p, x and y
+        let mut hasher = DefaultHasher::new();
+        hasher.write_usize(p);
+        hasher.write_i64(x.floor() as i64);
+        hasher.write_i64(y.floor() as i64);
+
+        // read bytes of u64 hash
+        let hash_bytes = read_platform_bytes(&hasher.finish());
+
+        // hash_bytes is [u8; 8] so copy it twice into an output array
+        let mut output = [0u8; 16];
+        for (from, to) in hash_bytes.iter().chain(&hash_bytes).zip(output.iter_mut()) {
+            *to = *from;
+        }
+        output
     }
 }
 
@@ -190,4 +202,16 @@ fn world_bounds_for_transform(transform: Matrix2d) -> (Vec2d, Vec2d) {
         }
     };
     ([min_x, min_y], [max_x, max_y])
+}
+
+
+fn read_platform_bytes(x: &u64) -> [u8; 8] {
+    let mut buf = [0; 8];
+    unsafe {
+        let p = x as *const u64 as *const u8;
+        for i in 0..8usize {
+            buf[i] = *p.offset(i as isize);
+        }
+    }
+    buf
 }
