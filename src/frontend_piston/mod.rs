@@ -67,7 +67,7 @@ pub fn main() {
         handle_input_event(&mut game, &e);
 
         // update
-        if let Some (u) = e.update_args() {
+        if let Some(u) = e.update_args() {
             game.update(u.dt);
         }
 

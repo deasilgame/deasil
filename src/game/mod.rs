@@ -2,8 +2,8 @@ pub mod components;
 mod systems;
 
 use rand::random;
+use specs::shred::{FetchMut, Resource};
 use specs::*;
-use specs::shred::{Resource, FetchMut};
 
 pub struct Game<'a, 'b> {
     pub world: World,
@@ -50,7 +50,9 @@ impl<'a, 'b> Game<'a, 'b> {
     }
 
     pub fn create_player(&mut self) {
-        let player_entity = self.world.create_entity()
+        let player_entity = self
+            .world
+            .create_entity()
             .with(components::Position(components::Point::new(0.0, 0.0)))
             .with(components::Rotation::default())
             .with(components::Velocity::default())
@@ -58,7 +60,8 @@ impl<'a, 'b> Game<'a, 'b> {
             .with(components::AngularVelocity::default())
             .with(player_shape())
             .build();
-        (*self.world.write_resource::<Option<components::Player>>()) = Some(components::Player(player_entity));
+        (*self.world.write_resource::<Option<components::Player>>()) =
+            Some(components::Player(player_entity));
     }
 
     pub fn input_mut(&mut self) -> FetchMut<components::Input> {
@@ -72,8 +75,10 @@ pub fn create_dummy_entity<B: Builder>(builder: B) -> B {
     builder
         .with(components::Position(components::Point::new(0.0, 0.0)))
         .with(components::Rotation::default())
-        .with(components::Velocity::new(random_range(-MAX_V, MAX_V), random_range(-MAX_V, MAX_V)))
-        .with(components::AngularVelocity::new(random_range(-3.14, 3.14)))
+        .with(components::Velocity::new(
+            random_range(-MAX_V, MAX_V),
+            random_range(-MAX_V, MAX_V),
+        )).with(components::AngularVelocity::new(random_range(-3.14, 3.14)))
         .with(random_shape())
 }
 
@@ -84,8 +89,8 @@ fn random_range(from: f64, to: f64) -> f64 {
 const SHAPE_SIZE: f64 = 1.0;
 
 fn player_shape() -> components::Shape {
-    use self::components::{SubShape, Vector};
     use self::components::Shape::*;
+    use self::components::{SubShape, Vector};
 
     let mut subshapes = Vec::new();
     subshapes.push(SubShape {
@@ -113,13 +118,22 @@ fn player_shape() -> components::Shape {
 }
 
 fn random_shape() -> components::Shape {
-    use self::components::{SubShape, Vector};
     use self::components::Shape::*;
+    use self::components::{SubShape, Vector};
 
     match (random::<bool>(), random::<bool>()) {
         (true, true) => Circle(SHAPE_SIZE / 2.0),
-        (true, false) => Rectangle(Vector { dx: SHAPE_SIZE, dy: SHAPE_SIZE }),
-        (false, true) => Sprite("TODO".to_string(), Vector { dx: SHAPE_SIZE, dy: SHAPE_SIZE }),
+        (true, false) => Rectangle(Vector {
+            dx: SHAPE_SIZE,
+            dy: SHAPE_SIZE,
+        }),
+        (false, true) => Sprite(
+            "TODO".to_string(),
+            Vector {
+                dx: SHAPE_SIZE,
+                dy: SHAPE_SIZE,
+            },
+        ),
         (false, false) => {
             let mut subshapes = Vec::new();
             for _ in 0..3 {

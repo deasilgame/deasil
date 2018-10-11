@@ -2,8 +2,8 @@ extern crate graphics;
 extern crate opengl_graphics;
 extern crate specs;
 
-use self::graphics::{Graphics, Transformed, Viewport};
 use self::graphics::math::{Matrix2d, Vec2d};
+use self::graphics::{Graphics, Transformed, Viewport};
 use self::opengl_graphics::{GlGraphics, OpenGL};
 use self::specs::*;
 
@@ -19,9 +19,9 @@ pub mod colors {
     use super::Color;
 
     pub const BLACK: Color = [0.0, 0.0, 0.0, 1.0];
-    pub const BLUE:  Color = [0.0, 0.0, 1.0, 1.0];
+    pub const BLUE: Color = [0.0, 0.0, 1.0, 1.0];
     pub const GREEN: Color = [0.0, 1.0, 0.0, 1.0];
-    pub const RED:   Color = [1.0, 0.0, 0.0, 1.0];
+    pub const RED: Color = [1.0, 0.0, 0.0, 1.0];
     pub const WHITE: Color = [1.0, 1.0, 1.0, 1.0];
 }
 
@@ -40,15 +40,20 @@ impl Default for RenderSys {
 }
 
 impl<'a> System<'a> for RenderSys {
-    type SystemData = (Read<'a, Option<Viewport>>,
-                       Read<'a, Camera>,
-                       ReadStorage<'a, Position>,
-                       ReadStorage<'a, Rotation>,
-                       ReadStorage<'a, Shape>);
-    
-    fn run(&mut self, (viewport_storage, camera, pos_storage, rot_storage, shape_storage): Self::SystemData) {
-        use self::graphics::*;
+    type SystemData = (
+        Read<'a, Option<Viewport>>,
+        Read<'a, Camera>,
+        ReadStorage<'a, Position>,
+        ReadStorage<'a, Rotation>,
+        ReadStorage<'a, Shape>,
+    );
+
+    fn run(
+        &mut self,
+        (viewport_storage, camera, pos_storage, rot_storage, shape_storage): Self::SystemData,
+    ) {
         use self::colors::*;
+        use self::graphics::*;
 
         if let Some(viewport) = *viewport_storage {
             let camera_center = camera.get_center_point();
@@ -57,7 +62,8 @@ impl<'a> System<'a> for RenderSys {
             let mut parallax = &mut self.parallax;
             self.gl.draw(viewport, |c, gl| {
                 clear(BLACK, gl);
-                let transform = transform_with_center_and_zoom(c.transform, camera_center, camera_zoom);
+                let transform =
+                    transform_with_center_and_zoom(c.transform, camera_center, camera_zoom);
                 parallax.draw(gl, camera_center, camera_zoom, c.transform);
                 for (pos, rot, shape) in (&pos_storage, &rot_storage, &shape_storage).join() {
                     draw_shape(gl, &shape, transform.trans(pos.0.x, pos.0.y).rot_rad(rot.0))
@@ -69,27 +75,53 @@ impl<'a> System<'a> for RenderSys {
 
 fn transform_with_center_and_zoom(transform: Matrix2d, center: Point, zoom: f64) -> Matrix2d {
     transform
-        .trans(consts::WINDOW_SIZE[0] as f64 / 2.0, consts::WINDOW_SIZE[1] as f64 / 2.0)
-        .zoom(zoom)
+        .trans(
+            consts::WINDOW_SIZE[0] as f64 / 2.0,
+            consts::WINDOW_SIZE[1] as f64 / 2.0,
+        ).zoom(zoom)
         .trans(-center.x, -center.y)
 }
 
 fn draw_shape<G: Graphics>(g: &mut G, shape: &Shape, transform: Matrix2d) {
-    use self::Shape::*;
-    use self::graphics::*;
     use self::colors::*;
+    use self::graphics::*;
+    use self::Shape::*;
 
     match shape {
-        Circle(radius) => ellipse(RED, rectangle::square(-radius, -radius, radius * 2.0), transform, g),
-        Rectangle(Vector { dx: width, dy: height }) => rectangle(BLUE, [width / -2.0, height / -2.0, *width, *height], transform, g),
-        Sprite(_name, Vector { dx: width, dy: height }) => {
+        Circle(radius) => ellipse(
+            RED,
+            rectangle::square(-radius, -radius, radius * 2.0),
+            transform,
+            g,
+        ),
+        Rectangle(Vector {
+            dx: width,
+            dy: height,
+        }) => rectangle(
+            BLUE,
+            [width / -2.0, height / -2.0, *width, *height],
+            transform,
+            g,
+        ),
+        Sprite(
+            _name,
+            Vector {
+                dx: width,
+                dy: height,
+            },
+        ) => {
             let rect = [width / -2.0, height / -2.0, *width, *height];
             rectangle(GREEN, rect, transform, g);
             // TODO: render `name` inside the rectangle;
         }
-        Compound(ref subshapes) => for SubShape { offset: Vector {dx, dy}, rotation, shape } in subshapes.iter() {
+        Compound(ref subshapes) => for SubShape {
+            offset: Vector { dx, dy },
+            rotation,
+            shape,
+        } in subshapes.iter()
+        {
             draw_shape(g, shape, transform.trans(*dx, *dy).rot_rad(*rotation))
-        }
+        },
     }
 }
 
@@ -110,21 +142,29 @@ impl Parallax {
         use self::graphics::*;
 
         for plane in 0..Parallax::PLANES {
-            let zoom_change = consts::ZOOM_FACTOR.powf(plane as f64 * Parallax::ZOOM_STEPS_PER_PLANE);
+            let zoom_change =
+                consts::ZOOM_FACTOR.powf(plane as f64 * Parallax::ZOOM_STEPS_PER_PLANE);
             let radius = Parallax::STAR_RADIUS * zoom_change / zoom * consts::DEFAULT_ZOOM;
-            let transform = transform_with_center_and_zoom(base_transform, center, zoom / zoom_change);
+            let transform =
+                transform_with_center_and_zoom(base_transform, center, zoom / zoom_change);
             self.draw_parallax_points(transform, plane, |p, c| {
-                ellipse(c, rectangle::square(-radius, -radius, radius * 2.0), transform.trans(p[0], p[1]), g);
+                ellipse(
+                    c,
+                    rectangle::square(-radius, -radius, radius * 2.0),
+                    transform.trans(p[0], p[1]),
+                    g,
+                );
             });
         }
     }
 
     fn draw_parallax_points<F>(&mut self, transform: Matrix2d, plane: usize, mut draw_fun: F)
-        where F: FnMut(Vec2d, Color) -> ()
+    where
+        F: FnMut(Vec2d, Color) -> (),
     {
         use rand::prng::XorShiftRng;
-        use rand::SeedableRng;
         use rand::Rng;
+        use rand::SeedableRng;
 
         // get the bounds for this plane
         let ([min_x, min_y], [max_x, max_y]) = world_bounds_for_transform(transform);
@@ -143,9 +183,17 @@ impl Parallax {
                     let c = random.gen::<f32>().sqrt() * 0.9;
                     draw_fun(
                         // random coords in the sector
-                        [x + random.gen::<f64>() * Parallax::SECTOR_SIZE, y + random.gen::<f64>() * Parallax::SECTOR_SIZE],
+                        [
+                            x + random.gen::<f64>() * Parallax::SECTOR_SIZE,
+                            y + random.gen::<f64>() * Parallax::SECTOR_SIZE,
+                        ],
                         // add a random colour tint (still mostly grey)
-                        [c + random.gen::<f32>() * 0.1, c + random.gen::<f32>() * 0.1, c + random.gen::<f32>() * 0.1, 1.0],
+                        [
+                            c + random.gen::<f32>() * 0.1,
+                            c + random.gen::<f32>() * 0.1,
+                            c + random.gen::<f32>() * 0.1,
+                            1.0,
+                        ],
                     );
                 }
                 y += Parallax::SECTOR_SIZE;
@@ -203,7 +251,6 @@ fn world_bounds_for_transform(transform: Matrix2d) -> (Vec2d, Vec2d) {
     };
     ([min_x, min_y], [max_x, max_y])
 }
-
 
 fn read_platform_bytes(x: &u64) -> [u8; 8] {
     let mut buf = [0; 8];

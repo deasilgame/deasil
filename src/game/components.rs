@@ -56,7 +56,10 @@ impl Input {
     pub fn keyboard_direction(&self) -> Vector {
         use std::f64::consts::SQRT_2;
         if (self.left || self.right) && (self.up || self.down) {
-            Vector::new(if self.left { -SQRT_2 } else { SQRT_2 }, if self.up { -SQRT_2 } else { SQRT_2 })
+            Vector::new(
+                if self.left { -SQRT_2 } else { SQRT_2 },
+                if self.up { -SQRT_2 } else { SQRT_2 },
+            )
         } else if self.left || self.right {
             Vector::new(if self.left { -1.0 } else { 1.0 }, 0.0)
         } else if self.up || self.down {
