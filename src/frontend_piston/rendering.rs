@@ -1,11 +1,9 @@
 extern crate graphics;
 extern crate opengl_graphics;
-extern crate specs;
 
 use self::graphics::math::{Matrix2d, Vec2d};
 use self::graphics::{Graphics, Transformed, Viewport};
 use self::opengl_graphics::{GlGraphics, OpenGL};
-use self::specs::*;
 
 use consts;
 use game::components::*;
@@ -39,37 +37,26 @@ impl Default for RenderSys {
     }
 }
 
-impl<'a> System<'a> for RenderSys {
-    type SystemData = (
-        Read<'a, Option<Viewport>>,
-        Read<'a, Camera>,
-        ReadStorage<'a, Position>,
-        ReadStorage<'a, Rotation>,
-        ReadStorage<'a, Shape>,
-    );
-
-    fn run(
-        &mut self,
-        (viewport_storage, camera, pos_storage, rot_storage, shape_storage): Self::SystemData,
-    ) {
+impl RenderSys {
+    pub fn render(&mut self, viewport: Viewport, game: &mut super::game::Game) {
         use self::colors::*;
         use self::graphics::*;
 
-        if let Some(viewport) = *viewport_storage {
-            let camera_center = camera.get_center_point();
-            let camera_zoom = camera.get_zoom();
+        let camera_center = game.camera.get_center_point();
+        let camera_zoom = game.camera.get_zoom();
 
-            let mut parallax = &mut self.parallax;
-            self.gl.draw(viewport, |c, gl| {
-                clear(BLACK, gl);
-                let transform =
-                    transform_with_center_and_zoom(c.transform, camera_center, camera_zoom);
-                parallax.draw(gl, camera_center, camera_zoom, c.transform);
-                for (pos, rot, shape) in (&pos_storage, &rot_storage, &shape_storage).join() {
-                    draw_shape(gl, &shape, transform.trans(pos.0.x, pos.0.y).rot_rad(rot.0))
+        let mut parallax = &mut self.parallax;
+        self.gl.draw(viewport, |c, gl| {
+            clear(BLACK, gl);
+            let transform =
+                transform_with_center_and_zoom(c.transform, camera_center, camera_zoom);
+            parallax.draw(gl, camera_center, camera_zoom, c.transform);
+            for option_entity in game.entities.iter() {
+                if let Some(entity) = option_entity {
+                    draw_shape(gl, &entity.shape, transform.trans(entity.position.0.x, entity.position.0.y).rot_rad(entity.rotation.0))
                 }
-            });
-        }
+            }
+        });
     }
 }
 

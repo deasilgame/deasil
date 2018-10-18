@@ -1,20 +1,4 @@
 use consts;
-use specs::*;
-
-pub fn create_world() -> World {
-    let mut world = World::new();
-    world.add_resource(Input::default());
-    world.add_resource(Clock::default());
-    world.add_resource(Camera::default());
-    world.add_resource(None as Option<Player>);
-    world.register::<Position>();
-    world.register::<Rotation>();
-    world.register::<Velocity>();
-    world.register::<Acceleration>();
-    world.register::<AngularVelocity>();
-    world.register::<Shape>();
-    world
-}
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Point {
@@ -132,8 +116,7 @@ impl Camera {
 
 pub struct Player(pub Entity);
 
-#[derive(Component, Debug, Default)]
-#[storage(VecStorage)]
+#[derive(Debug, Default)]
 // coords in world system
 pub struct Position(pub Point);
 
@@ -143,8 +126,7 @@ impl Position {
     }
 }
 
-#[derive(Component, Debug, Default)]
-#[storage(VecStorage)]
+#[derive(Debug, Default)]
 // rotation in radians
 pub struct Rotation(pub f64);
 
@@ -154,8 +136,7 @@ impl Rotation {
     }
 }
 
-#[derive(Component, Debug, Default)]
-#[storage(VecStorage)]
+#[derive(Debug, Default)]
 // ∆ world system coords / s
 pub struct Velocity(pub Vector);
 
@@ -165,8 +146,7 @@ impl Velocity {
     }
 }
 
-#[derive(Component, Debug, Default)]
-#[storage(VecStorage)]
+#[derive(Debug, Default)]
 // ∆ world system coords / s / s
 pub struct Acceleration(pub Vector);
 
@@ -176,8 +156,7 @@ impl Acceleration {
     }
 }
 
-#[derive(Component, Debug, Default)]
-#[storage(VecStorage)]
+#[derive(Debug, Default)]
 // ∆ rotation in radians / s
 pub struct AngularVelocity(pub f64);
 
@@ -187,8 +166,7 @@ impl AngularVelocity {
     }
 }
 
-#[derive(Clone, Component, Debug)]
-#[storage(VecStorage)]
+#[derive(Clone, Debug)]
 pub enum Shape {
     Circle(f64),
     Rectangle(Vector),
@@ -196,9 +174,25 @@ pub enum Shape {
     Compound(Vec<SubShape>),
 }
 
+impl Default for Shape {
+    fn default() -> Self {
+        Shape::Circle(1.0)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct SubShape {
     pub offset: Vector,
     pub rotation: f64,
+    pub shape: Shape,
+}
+
+#[derive(Debug, Default)]
+pub struct Entity {
+    pub position: Position,
+    pub rotation: Rotation,
+    pub velocity: Velocity,
+    pub acceleration: Acceleration,
+    pub angular_velocity: AngularVelocity,
     pub shape: Shape,
 }

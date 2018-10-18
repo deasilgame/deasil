@@ -8,7 +8,6 @@ use consts;
 use game;
 
 use self::glutin_window::GlutinWindow as Window;
-use self::graphics::Viewport;
 use self::piston::event_loop::*;
 use self::piston::input::*;
 use self::piston::window::WindowSettings;
@@ -44,8 +43,6 @@ fn handle_input_event(game: &mut game::Game, e: &Event) {
 }
 
 pub fn main() {
-    use specs::DispatcherBuilder;
-
     let mut window: Window = WindowSettings::new(consts::TITLE, consts::WINDOW_SIZE)
         .opengl(rendering::OPENGL)
         .exit_on_esc(true)
@@ -53,14 +50,8 @@ pub fn main() {
         .unwrap();
 
     let mut game = game::Game::new();
-    game.add_resource(None as Option<graphics::Viewport>);
-
     let mut events = Events::new(EventSettings::new());
-    let mut rendering_dispatcher = DispatcherBuilder::new()
-        .with_thread_local(rendering::RenderSys::default())
-        .build();
-
-    game.create_player();
+    let mut rendering_sys = rendering::RenderSys::default();
 
     while let Some(e) = events.next(&mut window) {
         // pass events to game
@@ -73,8 +64,7 @@ pub fn main() {
 
         // render
         if let Some(r) = e.render_args() {
-            (*game.write_resource::<Option<Viewport>>()) = Some(r.viewport());
-            game.render(&mut rendering_dispatcher);
+            rendering_sys.render(r.viewport(), &mut game);
         }
     }
 }
